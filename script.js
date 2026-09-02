@@ -1,107 +1,348 @@
+// ==========================================
+// ELEMENTOS DA PÁGINA
+// ==========================================
+
 const chat = document.getElementById("chat");
 
 const campo = document.getElementById("mensagem");
 
-const enviar = document.getElementById("enviar");
+const botaoEnviar = document.getElementById("enviar");
 
-const iniciar = document.getElementById("iniciar");
+const status = document.getElementById("status");
 
-const parar = document.getElementById("parar");
+const elementoNomeIA =
+    document.getElementById("nomeIA");
 
-const statusSistema = document.querySelector("header span");
+const elementoDispositivo =
+    document.getElementById("dispositivo");
 
-function horario(){
 
-    return new Date().toLocaleTimeString([],{
+// ==========================================
+// NOME DA IA
+// ==========================================
 
-        hour:"2-digit",
+// O servidor será responsável por identificar
+// se esta conexão é IA A ou IA B.
 
-        minute:"2-digit"
+let nomeIA = "IA";
 
-    });
 
-}
+// ==========================================
+// CONEXÃO COM O WEBSOCKET
+// ==========================================
 
-function adicionarMensagem(autor,texto){
+const socket = new WebSocket(
+    "wss://miniature-space-pancake-r46jw9rrqwgvhpj6j-8765.app.github.dev/"
+);
 
-    const mensagem = document.createElement("div");
 
-    mensagem.classList.add("mensagem");
+// ==========================================
+// QUANDO CONECTAR
+// ==========================================
 
-    if(autor=="IA A"){
+socket.onopen = function () {
 
-        mensagem.classList.add("iaA");
+    status.textContent =
+        "🟢 Conectado";
+
+    console.log(
+        "Conectado ao servidor WebSocket."
+    );
+
+};
+
+
+// ==========================================
+// QUANDO RECEBER UMA MENSAGEM
+// ==========================================
+
+socket.onmessage = function (event) {
+
+    try {
+
+        // Converte o JSON recebido
+        // para um objeto JavaScript
+
+        const dados =
+            JSON.parse(event.data);
+
+
+        // ==================================
+        // IDENTIFICAÇÃO DA IA
+        // ==================================
+
+        if (dados.tipo === "identificacao") {
+
+            nomeIA =
+                dados.nome;
+
+
+            // Mostra o nome da IA
+
+            if (elementoNomeIA) {
+
+                elementoNomeIA.textContent =
+                    nomeIA;
+
+            }
+
+
+            // Mostra o dispositivo
+
+            if (elementoDispositivo) {
+
+                if (nomeIA === "IA A") {
+
+                    elementoDispositivo.textContent =
+                        "Dispositivo A";
+
+                }
+                else {
+
+                    elementoDispositivo.textContent =
+                        "Dispositivo B";
+
+                }
+
+            }
+
+
+            console.log(
+                "Esta conexão é:",
+                nomeIA
+            );
+
+
+            return;
+
+        }
+
+
+        // ==================================
+        // MENSAGEM DO SISTEMA
+        // ==================================
+
+        if (dados.tipo === "sistema") {
+
+            adicionarMensagem(
+                dados.mensagem,
+                "sistema"
+            );
+
+
+            return;
+
+        }
+
+
+        // ==================================
+        // MENSAGEM RECEBIDA
+        // ==================================
+
+        if (dados.tipo === "mensagem") {
+
+            const texto =
+                dados.remetente +
+                ": " +
+                dados.mensagem;
+
+
+            adicionarMensagem(
+                texto,
+                "recebida"
+            );
+
+
+            return;
+
+        }
+
+    }
+    catch (erro) {
+
+        console.error(
+            "Erro ao interpretar mensagem:",
+            erro
+        );
 
     }
 
-    else{
+};
 
-        mensagem.classList.add("iaB");
+
+// ==========================================
+// QUANDO OCORRER UM ERRO
+// ==========================================
+
+socket.onerror = function (erro) {
+
+    status.textContent =
+        "🔴 Erro na conexão";
+
+    console.error(
+        "Erro no WebSocket:",
+        erro
+    );
+
+};
+
+
+// ==========================================
+// QUANDO DESCONECTAR
+// ==========================================
+
+socket.onclose = function () {
+
+    status.textContent =
+        "🔴 Desconectado";
+
+    console.log(
+        "WebSocket desconectado."
+    );
+
+};
+
+
+// ==========================================
+// ADICIONA MENSAGEM NA TELA
+// ==========================================
+
+function adicionarMensagem(
+    texto,
+    tipo
+) {
+
+    const mensagem =
+        document.createElement("div");
+
+
+    mensagem.classList.add(
+        "mensagem"
+    );
+
+
+    // Define o tipo da mensagem
+
+    mensagem.classList.add(
+        tipo
+    );
+
+
+    const balao =
+        document.createElement("div");
+
+
+    balao.classList.add(
+        "balao"
+    );
+
+
+    balao.textContent =
+        texto;
+
+
+    mensagem.appendChild(
+        balao
+    );
+
+
+    chat.appendChild(
+        mensagem
+    );
+
+
+    // Mantém o chat na última mensagem
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// ==========================================
+// ENVIA MENSAGEM
+// ==========================================
+
+function enviarMensagem() {
+
+    const texto =
+        campo.value.trim();
+
+
+    // Não permite mensagem vazia
+
+    if (texto === "") {
+
+        return;
 
     }
 
-    const avatar = autor=="IA A" ? "🤖" : "🧠";
 
-    mensagem.innerHTML = `
+    // Verifica se está conectado
 
-        <div class="avatar">
+    if (
+        socket.readyState !==
+        WebSocket.OPEN
+    ) {
 
-            ${avatar}
+        alert(
+            "A conexão com o servidor ainda não foi estabelecida."
+        );
 
-        </div>
+        return;
 
-        <div class="balao">
+    }
 
-            <div class="nome">
 
-                ${autor}
+    // Envia somente o texto
+    // O servidor identifica a IA
 
-            </div>
+    socket.send(
+        texto
+    );
 
-            <div>
 
-                ${texto}
+    // Mostra a mensagem no lado direito
 
-            </div>
+    adicionarMensagem(
+        nomeIA + ": " + texto,
+        "enviada"
+    );
 
-            <div class="hora">
 
-                ${horario()}
+    // Limpa o campo
 
-            </div>
+    campo.value = "";
 
-        </div>
 
-    `;
+    // Coloca o cursor novamente no campo
 
-    chat.appendChild(mensagem);
-
-    chat.scrollTop = chat.scrollHeight;
-
-}
-
-enviar.onclick = ()=>{
-
-    if(campo.value=="") return;
-
-    adicionarMensagem("IA A",campo.value);
-
-    campo.value="";
+    campo.focus();
 
 }
 
-iniciar.onclick = ()=>{
 
-    statusSistema.innerHTML="Status: Conversando";
+// ==========================================
+// BOTÃO ENVIAR
+// ==========================================
 
-    adicionarMensagem("IA A","Olá! Estou pronta para iniciar nossa conversa.");
+botaoEnviar.onclick =
+    enviarMensagem;
 
-}
 
-parar.onclick = ()=>{
+// ==========================================
+// TECLA ENTER
+// ==========================================
 
-    statusSistema.innerHTML="Status: Conversa encerrada";
+campo.addEventListener(
+    "keypress",
+    function (event) {
 
-    adicionarMensagem("IA B","Até a próxima!");
+        if (event.key === "Enter") {
 
-}
+            enviarMensagem();
+
+        }
+
+    }
+);

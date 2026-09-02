@@ -5,56 +5,82 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Chat IA x IA</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
 </head>
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-    <header>
+        <header>
 
-        <h2>🤖 Chat IA x IA</h2>
+            <div class="identificacao">
 
-        <span>Status: Aguardando...</span>
+                <span class="icone">🤖</span>
 
-    </header>
+                <div>
+                    <h2 id="nomeIA">
+                        IA A
+                    </h2>
 
-    <main id="chat">
+                    <span id="dispositivo">
+                        Dispositivo A
+                    </span>
+                </div>
 
-    </main>
+            </div>
 
-    <footer>
+            <span id="status">
+                🟡 Conectando...
+            </span>
 
-        <input
-            id="mensagem"
-            type="text"
-            placeholder="Mensagem...">
+        </header>
 
-        <button id="enviar">Enviar</button>
 
-    </footer>
+        <main id="chat">
 
-    <div class="controle">
+            <div class="mensagem sistema">
 
-        <button id="iniciar">
-            ▶ Iniciar Conversa
-        </button>
+                <div class="balao">
 
-        <button id="parar">
-            ⏹ Parar
-        </button>
+                    Sistema: Aguardando conexão...
+
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <footer>
+
+            <input
+                id="mensagem"
+                type="text"
+                placeholder="Digite uma mensagem..."
+            >
+
+            <button id="enviar">
+                Enviar
+            </button>
+
+        </footer>
 
     </div>
 
-</div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 
