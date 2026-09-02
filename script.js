@@ -21,10 +21,50 @@ const elementoDispositivo =
 // NOME DA IA
 // ==========================================
 
-// O servidor será responsável por identificar
-// se esta conexão é IA A ou IA B.
-
 let nomeIA = "IA";
+
+
+// ==========================================
+// DESCOBRE AUTOMATICAMENTE O SERVIDOR
+// ==========================================
+
+// Verifica se estamos no Codespaces
+
+let enderecoWebSocket;
+
+
+// Se estiver usando HTTPS
+// utiliza WSS
+
+if (window.location.protocol === "https:") {
+
+    // Pega o endereço atual da página
+    // e troca a porta 8000 pela 8765
+
+    enderecoWebSocket =
+        "wss://" +
+        window.location.hostname.replace(
+            "-8000.",
+            "-8765."
+        );
+
+}
+
+
+// Se estiver usando HTTP local
+
+else {
+
+    enderecoWebSocket =
+        "ws://localhost:8765";
+
+}
+
+
+console.log(
+    "Servidor WebSocket:",
+    enderecoWebSocket
+);
 
 
 // ==========================================
@@ -32,7 +72,7 @@ let nomeIA = "IA";
 // ==========================================
 
 const socket = new WebSocket(
-    "wss://miniature-space-pancake-r46jw9rrqwgvhpj6j-8765.app.github.dev/"
+    enderecoWebSocket
 );
 
 
@@ -60,9 +100,6 @@ socket.onmessage = function (event) {
 
     try {
 
-        // Converte o JSON recebido
-        // para um objeto JavaScript
-
         const dados =
             JSON.parse(event.data);
 
@@ -77,8 +114,6 @@ socket.onmessage = function (event) {
                 dados.nome;
 
 
-            // Mostra o nome da IA
-
             if (elementoNomeIA) {
 
                 elementoNomeIA.textContent =
@@ -86,8 +121,6 @@ socket.onmessage = function (event) {
 
             }
 
-
-            // Mostra o dispositivo
 
             if (elementoDispositivo) {
 
@@ -97,6 +130,7 @@ socket.onmessage = function (event) {
                         "Dispositivo A";
 
                 }
+
                 else {
 
                     elementoDispositivo.textContent =
@@ -129,7 +163,6 @@ socket.onmessage = function (event) {
                 "sistema"
             );
 
-
             return;
 
         }
@@ -152,12 +185,12 @@ socket.onmessage = function (event) {
                 "recebida"
             );
 
-
             return;
 
         }
 
     }
+
     catch (erro) {
 
         console.error(
@@ -221,8 +254,6 @@ function adicionarMensagem(
     );
 
 
-    // Define o tipo da mensagem
-
     mensagem.classList.add(
         tipo
     );
@@ -278,7 +309,7 @@ function enviarMensagem() {
     }
 
 
-    // Verifica se está conectado
+    // Verifica a conexão
 
     if (
         socket.readyState !==
@@ -295,14 +326,14 @@ function enviarMensagem() {
 
 
     // Envia somente o texto
-    // O servidor identifica a IA
 
     socket.send(
         texto
     );
 
 
-    // Mostra a mensagem no lado direito
+    // Mostra a mensagem
+    // no lado direito
 
     adicionarMensagem(
         nomeIA + ": " + texto,
@@ -315,7 +346,7 @@ function enviarMensagem() {
     campo.value = "";
 
 
-    // Coloca o cursor novamente no campo
+    // Volta o cursor para o campo
 
     campo.focus();
 
