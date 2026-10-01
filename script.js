@@ -21,49 +21,52 @@ const elementoDispositivo =
 // NOME DA IA
 // ==========================================
 
-let nomeIA = "IA";
+const iaAtual =
+    window.IA_NOME &&
+    ["IA A", "IA B"].includes(window.IA_NOME)
+        ? window.IA_NOME
+        : (
+            window.location.port === "8001"
+                ? "IA B"
+                : "IA A"
+        );
+
+let nomeIA = iaAtual;
 
 
 // ==========================================
 // DESCOBRE AUTOMATICAMENTE O SERVIDOR
 // ==========================================
 
-// Verifica se estamos no Codespaces
-
 let enderecoWebSocket;
-
-
-// Se estiver usando HTTPS
-// utiliza WSS
+const identificacao =
+    `?ia=${encodeURIComponent(iaAtual)}`;
 
 if (window.location.protocol === "https:") {
 
-    // Pega o endereço atual da página
-    // e troca a porta 8000 pela 8765
-
-    enderecoWebSocket =
-        "wss://" +
+    const hostnameWebSocket =
         window.location.hostname.replace(
-            "-8000.",
+            /-800[01]\./,
             "-8765."
         );
 
+    enderecoWebSocket =
+        `wss://${hostnameWebSocket}/${identificacao}`;
+
 }
-
-
-// Se estiver usando HTTP local
-
 else {
 
     enderecoWebSocket =
-        "ws://localhost:8765";
+        `ws://${window.location.hostname}:8765/${identificacao}`;
 
 }
+
+const urlSocket = enderecoWebSocket;
 
 
 console.log(
     "Servidor WebSocket:",
-    enderecoWebSocket
+    urlSocket
 );
 
 
@@ -71,32 +74,63 @@ console.log(
 // CONEXÃO COM O WEBSOCKET
 // ==========================================
 
-const socket = new WebSocket(
-    enderecoWebSocket
-);
+let socket;
+let temporizadorReconexao;
+
+function conectarWebSocket() {
+
+    const conexao = new WebSocket(urlSocket);
+    socket = conexao;
+
+    conexao.onopen = function () {
+
+        status.textContent = "🟢 Conectado";
+        console.log("Conectado ao servidor WebSocket.");
+
+    };
+
+    conexao.onmessage = receberMensagem;
+
+    conexao.onerror = function (erro) {
+
+        status.textContent = "🔴 Erro na conexão";
+        console.error("Erro no WebSocket:", erro);
+
+    };
+
+    conexao.onclose = function () {
+
+        if (socket !== conexao) {
+            return;
+        }
+
+        status.textContent = "🟡 Reconectando...";
+        console.log("WebSocket desconectado; tentando reconectar.");
+
+        temporizadorReconexao = window.setTimeout(function () {
+
+            if (socket === conexao) {
+                conectarWebSocket();
+            }
+
+        }, 1500);
+
+    };
+
+}
+
+conectarWebSocket();
 
 
 // ==========================================
 // QUANDO CONECTAR
 // ==========================================
 
-socket.onopen = function () {
-
-    status.textContent =
-        "🟢 Conectado";
-
-    console.log(
-        "Conectado ao servidor WebSocket."
-    );
-
-};
-
-
 // ==========================================
 // QUANDO RECEBER UMA MENSAGEM
 // ==========================================
 
-socket.onmessage = function (event) {
+function receberMensagem(event) {
 
     try {
 
@@ -168,6 +202,18 @@ socket.onmessage = function (event) {
         }
 
 
+        if (dados.tipo === "tema") {
+
+            adicionarMensagem(
+                `Tema iniciado por ${dados.remetente}: ${dados.mensagem}`,
+                "sistema"
+            );
+
+            return;
+
+        }
+
+
         // ==================================
         // MENSAGEM RECEBIDA
         // ==================================
@@ -179,10 +225,15 @@ socket.onmessage = function (event) {
                 ": " +
                 dados.mensagem;
 
+            const posicao =
+                dados.remetente === iaAtual
+                    ? "enviada"
+                    : "recebida";
+
 
             adicionarMensagem(
                 texto,
-                "recebida"
+                posicao
             );
 
             return;
@@ -200,40 +251,7 @@ socket.onmessage = function (event) {
 
     }
 
-};
-
-
-// ==========================================
-// QUANDO OCORRER UM ERRO
-// ==========================================
-
-socket.onerror = function (erro) {
-
-    status.textContent =
-        "🔴 Erro na conexão";
-
-    console.error(
-        "Erro no WebSocket:",
-        erro
-    );
-
-};
-
-
-// ==========================================
-// QUANDO DESCONECTAR
-// ==========================================
-
-socket.onclose = function () {
-
-    status.textContent =
-        "🔴 Desconectado";
-
-    console.log(
-        "WebSocket desconectado."
-    );
-
-};
+}
 
 
 // ==========================================
@@ -327,18 +345,10 @@ function enviarMensagem() {
 
     // Envia somente o texto
 
-    socket.send(
-        texto
-    );
-
-
-    // Mostra a mensagem
-    // no lado direito
-
-    adicionarMensagem(
-        nomeIA + ": " + texto,
-        "enviada"
-    );
+    socket.send(JSON.stringify({
+        tipo: "iniciar_conversa",
+        tema: texto,
+    }));
 
 
     // Limpa o campo

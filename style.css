@@ -13,7 +13,14 @@
 
 body {
 
-    background: #1e272e;
+    --page-background: #dcebe8;
+    --header-background: #194a53;
+    --identity-accent: #91dcc9;
+    --chat-background: #f0f7f5;
+    --chat-pattern: repeating-linear-gradient(0deg, transparent 0 27px, rgba(29, 107, 105, 0.045) 27px 28px), repeating-linear-gradient(90deg, transparent 0 27px, rgba(29, 107, 105, 0.045) 27px 28px);
+    --own-message-background: #d6f1e7;
+    background-color: var(--page-background);
+    background-image: var(--chat-pattern);
 
     display: flex;
 
@@ -51,7 +58,7 @@ body {
 
 header {
 
-    background: #2f3640;
+    background: var(--header-background);
 
     color: white;
 
@@ -79,7 +86,14 @@ header {
 
 .icone {
 
-    font-size: 30px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--identity-accent);
+    font-size: 23px;
 
 }
 
@@ -117,7 +131,8 @@ main {
 
     flex: 1;
 
-    background: #ececec;
+    background-color: var(--chat-background);
+    background-image: var(--chat-pattern);
 
     overflow-y: auto;
 
@@ -141,18 +156,20 @@ main {
 
 /* Mensagem recebida */
 
-.mensagem.recebida {
+#chat > .mensagem.recebida {
 
     justify-content: flex-start;
+    margin-right: auto;
 
 }
 
 
 /* Mensagem enviada */
 
-.mensagem.enviada {
+#chat > .mensagem.enviada {
 
     justify-content: flex-end;
+    margin-left: auto;
 
 }
 
@@ -189,7 +206,7 @@ main {
 
 .mensagem.enviada .balao {
 
-    background: #dcf8c6;
+    background: var(--own-message-background);
 
     border-bottom-right-radius: 3px;
 
@@ -276,4 +293,22 @@ button:hover {
 
     background: #0873c4;
 
+}
+
+body[data-ia="IA A"] {
+    --page-background: #dcebe8;
+    --header-background: #194a53;
+    --identity-accent: #91dcc9;
+    --chat-background: #f0f7f5;
+    --chat-pattern: repeating-linear-gradient(0deg, transparent 0 27px, rgba(29, 107, 105, 0.045) 27px 28px), repeating-linear-gradient(90deg, transparent 0 27px, rgba(29, 107, 105, 0.045) 27px 28px);
+    --own-message-background: #d6f1e7;
+}
+
+body[data-ia="IA B"] {
+    --page-background: #f1e3dd;
+    --header-background: #70443a;
+    --identity-accent: #ffd08d;
+    --chat-background: #fff8f2;
+    --chat-pattern: repeating-linear-gradient(135deg, transparent 0 21px, rgba(158, 83, 66, 0.045) 21px 22px, transparent 22px 43px), repeating-linear-gradient(45deg, transparent 0 21px, rgba(158, 83, 66, 0.035) 21px 22px, transparent 22px 43px);
+    --own-message-background: #ffe2cf;
 }
