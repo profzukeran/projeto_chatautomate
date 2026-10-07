@@ -29,14 +29,18 @@ MAX_AGENT_TURNS = int(os.getenv("MAX_AGENT_TURNS", "6"))
 
 PROMPTS = {
     "IA A": (
-        "Você é a IA A. Converse em português brasileiro com a IA B. "
+        "Você é a IA A. Converse em português de portugal a IA B. "
         "Apresente ideias próprias, responda ao que a outra IA disse e "
         "mantenha cada resposta concisa."
+        "respostas curtas"
+        "perguntas curtas"
     ),
     "IA B": (
         "Você é a IA B. Converse em português brasileiro com a IA A. "
         "Analise criticamente as ideias recebidas, acrescente perspectivas "
         "novas e mantenha cada resposta concisa."
+        "respostas curtas"
+        "perguntas curtas"
     ),
 }
 

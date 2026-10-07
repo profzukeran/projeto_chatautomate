@@ -18,6 +18,114 @@ const elementoDispositivo =
 
 
 // ==========================================
+// VOZ DA IA
+// ==========================================
+
+const PERFIS_VOZ = {
+    "IA A": {
+        pitch: 0.75,
+        rate: 0.9,
+        termos: [
+            "male",
+            "masculino",
+            "davis",
+            "daniel",
+            "mark",
+            "paul",
+            "john",
+            "michael",
+            "jarvis",
+            "pascal"
+        ]
+    },
+    "IA B": {
+        pitch: 1.35,
+        rate: 1.08,
+        termos: [
+            "female",
+            "feminina",
+            "zira",
+            "samantha",
+            "susan",
+            "victoria",
+            "audrey",
+            "aria",
+            "allison",
+            "hazel",
+            "susan"
+        ]
+    }
+};
+
+let vozesDisponiveis = [];
+
+function carregarVozes() {
+
+    if (!("speechSynthesis" in window)) {
+        return;
+    }
+
+    vozesDisponiveis = window.speechSynthesis.getVoices();
+
+}
+
+if ("speechSynthesis" in window) {
+    carregarVozes();
+    window.speechSynthesis.onvoiceschanged = carregarVozes;
+}
+
+function escolherVozPorPerfil(nomeRemetente) {
+
+    if (!("speechSynthesis" in window)) {
+        return null;
+    }
+
+    const perfil = PERFIS_VOZ[nomeRemetente] || PERFIS_VOZ["IA B"];
+
+    const vozCorresponde = vozesDisponiveis.filter((voz) => {
+
+        const nomeVoz = `${voz.name} ${voz.lang}`.toLowerCase();
+        return perfil.termos.some((termo) => nomeVoz.includes(termo));
+
+    });
+
+    if (vozCorresponde.length > 0) {
+        return vozCorresponde[0];
+    }
+
+    const vozPortuguesa = vozesDisponiveis.find((voz) =>
+        voz.lang.toLowerCase().startsWith("pt")
+    );
+
+    return vozPortuguesa || vozesDisponiveis[0] || null;
+}
+
+function falarMensagem(texto, remetente) {
+
+    if (!("speechSynthesis" in window) || !texto) {
+        return;
+    }
+
+    const perfil = PERFIS_VOZ[remetente] || PERFIS_VOZ["IA B"];
+    const fala = new SpeechSynthesisUtterance(texto);
+    const vozSelecionada = escolherVozPorPerfil(remetente);
+
+    fala.lang = "pt-PT";
+    fala.pitch = perfil.pitch;
+    fala.rate = perfil.rate;
+    fala.volume = 1;
+
+    if (vozSelecionada) {
+        fala.voice = vozSelecionada;
+    }
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(fala);
+
+}
+
+
+// ==========================================
 // NOME DA IA
 // ==========================================
 
@@ -230,6 +338,9 @@ function receberMensagem(event) {
                     ? "enviada"
                     : "recebida";
 
+            if (dados.remetente === "IA A" || dados.remetente === "IA B") {
+                falarMensagem(dados.mensagem, dados.remetente);
+            }
 
             adicionarMensagem(
                 texto,
